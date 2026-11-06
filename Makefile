@@ -17,7 +17,7 @@ esp: build
 run: esp
 	qemu-system-x86_64 \
 		-drive if=pflash,format=raw,readonly=on,file=$(OVMF) \
-		-drive format=raw,file=fat:rw:$(ESP)
+		-drive format=raw,file=fat:rw:$(ESP) -serial stdio
 
 clean:
 	cd $(BOOT_DIR) && cargo clean
