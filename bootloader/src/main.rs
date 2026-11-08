@@ -3,11 +3,14 @@
 
 use uefi::{
     Result,
-    boot::{MemoryType, PAGE_SIZE},
+    boot::{MemoryType, PAGE_SIZE, ScopedProtocol},
     mem::memory_map::MemoryMap,
     prelude::*,
     println,
-    proto::console::text::{Input, Key, ScanCode},
+    proto::{
+        console::text::{Input, Key, ScanCode},
+        media::fs::SimpleFileSystem,
+    },
 };
 
 const MIB: u64 = 1024 * 1024;
@@ -81,6 +84,14 @@ fn main() -> Status {
     println!();
 
     disp_memmap();
+
+    let handle = boot::image_handle();
+    let mut sfs: ScopedProtocol<SimpleFileSystem> =
+        boot::get_image_file_system(handle).expect("Failed getting the image simple file system");
+    println!(
+        "{:?}",
+        sfs.open_volume().expect("Failed opening the image volume")
+    );
 
     system::with_stdin(wait_esc).expect("Unable to read the keyboard");
 
