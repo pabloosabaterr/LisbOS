@@ -24,6 +24,12 @@ time, and come back later to rewrite what I need.
 Honestly, just because. I wanted to learn it properly, and I always fall back
 to C because it's where I'm comfortable.
 
+### AI
+
+I use AI to help me learn, NOT to write code. Operating Systems has a huge
+amount of resources and documentation, and AI helps me find what I need in all
+of that. That's all it does here: detective work.
+
 ## Structure
 
 - `bootloader/`: UEFI bootloader, built with [uefi-rs](https://github.com/rust-osdev/uefi-rs).
