@@ -2,14 +2,17 @@
 #![no_std]
 
 use uefi::{
-    Result,
+    CStr16, Result,
     boot::{MemoryType, PAGE_SIZE, ScopedProtocol},
     mem::memory_map::MemoryMap,
     prelude::*,
     println,
     proto::{
         console::text::{Input, Key, ScanCode},
-        media::fs::SimpleFileSystem,
+        media::{
+            file::{File, FileAttribute, FileMode::Read},
+            fs::SimpleFileSystem,
+        },
     },
 };
 
@@ -77,6 +80,8 @@ fn disp_memmap() {
     println!("Total free mem: {} MiB", total_free / MIB);
 }
 
+const MAX_FAT32_FILENAME_LENGTH: usize = 255;
+
 #[entry]
 fn main() -> Status {
     uefi::helpers::init().unwrap();
@@ -88,10 +93,20 @@ fn main() -> Status {
     let handle = boot::image_handle();
     let mut sfs: ScopedProtocol<SimpleFileSystem> =
         boot::get_image_file_system(handle).expect("Failed getting the image simple file system");
-    println!(
-        "{:?}",
-        sfs.open_volume().expect("Failed opening the image volume")
-    );
+
+    let mut volume = sfs.open_volume().expect("Failed opening the image volume");
+    /* +1 for the NULL terminator */
+    let mut buf = [0; MAX_FAT32_FILENAME_LENGTH + 1];
+    let filename = CStr16::from_str_with_buf("test.txt", &mut buf).unwrap();
+    let file_handle = volume.open(filename, Read, FileAttribute::empty());
+    let mut file_buffer = [0; 1024];
+    let read_bytes = file_handle
+        .unwrap()
+        .into_regular_file()
+        .unwrap()
+        .read(&mut file_buffer)
+        .unwrap();
+    println!("{}", str::from_utf8(&file_buffer[0..read_bytes]).unwrap());
 
     system::with_stdin(wait_esc).expect("Unable to read the keyboard");
 
